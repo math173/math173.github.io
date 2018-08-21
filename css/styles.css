@@ -34,6 +34,12 @@ h4 {margin:0;}
   padding-bottom: 1em;
 }
 
+.header > h2 {
+  font-family: sans-serif;
+}
+
+#underline {text-decoration: underline;}
+
 .main {
   margin: 0 auto;
   padding: 2em;
@@ -48,6 +54,7 @@ table, th, td {
 
 table {
   margin: 0 auto;
+  margin-top: 2em;
   padding: 1em;
   border-collapse: collapse;
 }
@@ -56,3 +63,7 @@ th, td {
   padding: 15px;
   width: 15em;
 }
+
+th:nth-child(1), td:nth-child(1) {width: 6em;}
+th:nth-child(2), td:nth-child(2) {width: 23em;}
+th:nth-child(3), td:nth-child(3) {width: 13em;}
