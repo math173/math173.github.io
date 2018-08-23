@@ -23,7 +23,7 @@ a:active  { color:#fc1827; }
 .body {
   margin: 0 auto;
   min-height: 100%;
-  max-width: 50em;
+  max-width: 55em;
   background-color: white;
 }
 
@@ -66,4 +66,4 @@ th, td {
 
 th:nth-child(1), td:nth-child(1) {width: 6em;}
 th:nth-child(2), td:nth-child(2) {width: 23em;}
-th:nth-child(3), td:nth-child(3) {width: 13em;}
+th:nth-child(3), td:nth-child(3) {width: 15em;}
