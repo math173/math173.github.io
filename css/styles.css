@@ -16,6 +16,10 @@ a, a:visited { color:#fc4d53; }
 a:hover      { color:#fc767a; }
 a:active  { color:#fc1827; }
 
+#spacing {
+  line-height: 1.2em;
+}
+
 #title {
   font-size: 1.45em;
 }
