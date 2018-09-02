@@ -39,8 +39,7 @@ since these problems will hint at future directions in the course or other inter
 
 \begin{problem}[3]
     Let $C[0,1]$ be the vector space of continuous real functions on the interval $[0,1]$.
-    Show that $C[0,1]$ has uncountable Hamel dimension. \textit{Hint:} Consider
-    $\{e^{\beta x} : \beta\in[0,1]\}$.
+    Show that $C[0,1]$ has uncountable Hamel dimension.
 \end{problem}
 
 \begin{solution}
@@ -50,10 +49,11 @@ since these problems will hint at future directions in the course or other inter
 
 \begin{problem}[4]
     \begin{enumerate}[(1)]
-        \item Prove that the real numbers form an infinite dimensional vector space over the rational numbers.
-        \item Let $p\in \mathbb{Q}[x]$ be a rational coefficient polynomial. What is the minimal
-            number of evaluations of $p$ needed to uniquely determine $p$ (a) if we are allowed
-            to evaluate only at rational points and (b) if we are allowed to evaluate at real points.
+        \item Prove that the real numbers form a vector space over the rational numbers of
+            uncountable Hamel dimension.
+        \item Let $p\in \mathbb{Q}[x]$ be a rational coefficient polynomial. If we are only allowed
+            to query $p(x)$ for (a) rational $x$ and (b) real $x$, what is the minimal number of
+            queries needed to uniquely determine $p$?
     \end{enumerate}
 \end{problem}
 
@@ -70,12 +70,12 @@ since these problems will hint at future directions in the course or other inter
         \mathbb{E} f(X/n) = \sum_{k=0}^n f\bigl(\tfrac{k}{n}\bigr) {n\choose k} x^k (1-x)^{n-k}.
     \]
     The right hand side of this, as a function of $x$, is called the $n$-th Bernstein
-    polynomial of $f$, denoted $B_n(f)$. We will show that $B_n(f) \to f$ uniformly,
-    which shows that $\{x^k (1-x)^{n-k} : 0\leq k \leq n\}$ approximates a basis
-    for $C[0,1]$ in some sense. This shows that, while $C[0,1]$ has uncountable Hamel dimension,
-    it has `almost-countable' dimension, a notion that will be made more precise later in
-    the course. (\textbf{Remark:} This also proves of the Wierstrass Approximation Theorem,
-    that says that the polynomials are dense in $C[0,1]$.)
+    polynomial of $f$, denoted $B_n(f)$. We will prove the Wierstrass Approximation Theorem:
+    that the polynomials are dense in $C[0,1]$ under the sup-norm $d(f,g) = \sup_{x\in[0,1]}
+    |f(x)-g(x)|$, by showing that $B_n(f) \to f$ uniformly.
+    This says that under a strong notion of distance, the vector space $C[0,1]$
+    of uncountable Hamel dimension is actually `approximately' countable, in a way we will
+    formalize later in the course.
     \begin{enumerate}[(1)]
         \item Prove that
             \[
@@ -83,8 +83,7 @@ since these problems will hint at future directions in the course or other inter
             \]
             for all $\epsilon > 0$. \textit{Hint:} Recall Chebyshev's
             inequality\footnote{Chebyshev's inequality says that
-            $\mathbb{P}(|X - \mathbb{E}X| \geq \gamma)\leq \gamma^{-2}\text{Var}(X)$.} and use a
-            diagonalization argument.
+            $\mathbb{P}(|X - \mathbb{E}X| \geq \gamma)\leq \gamma^{-2}\text{Var}(X)$.}.
         \item Infer that
             \[
                 \lim_{n\to\infty}\sup_{x\in[0,1]} \mathbb{P}(|f(\tfrac{X}{n}) - f(x)|\geq \epsilon) = 0\quad\text{to prove}\quad
