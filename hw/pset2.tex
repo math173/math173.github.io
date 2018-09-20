@@ -25,6 +25,7 @@
 \begin{solution}
     \vfill
 \end{solution}
+\clearpage
 
 \begin{problem}[2]
     Let $\mathcal{V}$ be a vector space, and recall that two linear spaces are
@@ -43,29 +44,32 @@
 \clearpage
 
 \begin{problem}[3]
-    Let $A\in\mathbb{C}^{m\times n}$ and decompose $A = U \Sigma V^*$ into its singular value
-    decomposition where $\Sigma$ is the diagonal matrix composed of the singular values
-    $\sigma_1\geq\sigma_2\geq \dots\geq 0$. Write $\Sigma_k = \operatorname{diag}\{\sigma_1,\sigma_2
-    ,\ldots,\sigma_k\}$ for $k=1,2,\ldots,\max\{m,n\}$ and define the truncated singular value decomposition
-    $A_k = U\Sigma_k V^*$. Prove\footnote{As we'll see later in the course, this says that the distance between
-    $A$ and $A_k$ in the so-called \emph{spectral norm} is $\sigma_{k+1}$. It turns out that this is the
-    \emph{best} rank-$k$ approximation to $A$ in both the spectral and Frobenius norms.}
-    that the largest singular value of $A - A_k$ is $\sigma_{k+1}$.
+\begin{enumerate}[(a)]
+    \item Prove that the set of diagonalizable matrices is dense in the set of all matrices
+        under the metric $d(A,B) = \max_{ij}|A_{ij} - B_{ij}|$ on $\mathsf{M}_n(\mathbb{C})$.
+    \item Using this, prove that the trace of a matrix is the sum of its eigenvalues, and that the determinant
+        of a matrix is the product of its eigenvalues.
+\end{enumerate}
 \end{problem}
 
 \begin{solution}
     \vfill
 \end{solution}
+\clearpage
 
 \begin{problem}[4]
-    Load the image located at \url{https://math173.github.io/img/dog.jpg} into a computational language of your choice.
-    We can think of this grayscale image as a matrix $A\in\mathbb{R}^{m\times n}$. Where each element $A_{ij}$ is
-    the intensity of the pixel $A_{ij}$.
+    Let $A,B : \ell^2(\mathbb{C}) \to \ell^2(\mathbb{C})$ be linear operators on the space of square
+    summable sequences. If $\sum_{i,j} |A_{ij}|^2 < \infty$ we call $A$ a Hilbert-Schmidt operator.
+    Prove that the functional
+    \[
+        \langle A,B\rangle = \sum_{ij}A_{ij}\overline B_{ij}
+    \]
+    is an inner product. That is, prove that $\langle \cdot,\cdot\rangle$
 \begin{enumerate}[(a)]
-    \item Plot\footnote{You can use an SVD function. No need to implement it.} (in decreasing order) the singular values of $A$.
-    \item Plot the truncated SVD $A_k$ as an image for $k=5,10,15,50$ and compare it to $A$.
-    \item How many entries do we need to store to represent $A_k$ for general $A\in\mathbb{R}^{m\times n}$?
-        Using this, interpret $A_k$ as a lossy compression scheme for a matrix $A$.
+    \item is well-defined between Hilbert-Schmidt operators.
+    \item is linear in the first coordinate.
+    \item satisfies $\langle A,B\rangle = \overline{\langle B,A\rangle}$
+    \item requires $A=0$ if $\langle A,A\rangle = 0$.
 \end{enumerate}
 \end{problem}
 
