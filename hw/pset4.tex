@@ -1,0 +1,64 @@
+\documentclass[12pt,letterpaper,cm]{hmcpset}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb}
+\usepackage{algorithm2e}
+\usepackage{enumerate}
+
+% info for header block in upper right hand corner
+\name{-----------}
+\class{Math 173}
+\assignment{Problem Set 3}
+\duedate{September 19, 2018}
+\setlength\parindent{0pt}
+
+\begin{document}
+
+\begin{problem}[1]
+    
+\end{problem}
+
+\begin{solution}
+    \vfill
+\end{solution}
+
+\begin{problem}[2]
+    
+\end{problem}
+
+\begin{solution}
+    \vfill
+\end{solution}
+
+\begin{problem}[3]
+    Let $A\in\mathbb{C}^{m\times n}$ and decompose $A = U \Sigma V^*$ into its singular value
+    decomposition where $\Sigma$ is the diagonal matrix composed of the singular values
+    $\sigma_1\geq\sigma_2\geq \dots\geq 0$. Write $\Sigma_k = \operatorname{diag}\{\sigma_1,\sigma_2
+    ,\ldots,\sigma_k\}$ for $k=1,2,\ldots,\max\{m,n\}$ and define the truncated singular value decomposition
+    $A_k = U\Sigma_k V^*$. Prove\footnote{As we'll see later in the course, this says that the distance between
+    $A$ and $A_k$ in the so-called \emph{spectral norm} is $\sigma_{k+1}$. It turns out that this is the
+    \emph{best} rank-$k$ approximation to $A$ in both the spectral and Frobenius norms.}
+    that the largest singular value of $A - A_k$ is $\sigma_{k+1}$.
+\end{problem}
+
+\begin{solution}
+    \vfill
+\end{solution}
+
+\begin{problem}[4]
+    Load the image located at \url{https://math173.github.io/img/dog.jpg} into a computational language of your choice.
+    We can think of this grayscale image as a matrix $A\in\mathbb{R}^{m\times n}$. Where each element $A_{ij}$ is
+    the intensity of the pixel $A_{ij}$.
+\begin{enumerate}[(a)]
+    \item Plot\footnote{You can use an SVD function. No need to implement it.} (in decreasing order) the singular values of $A$.
+    \item Plot the truncated SVD $A_k$ as an image for $k=5,10,15,50$ and compare it to $A$.
+    \item How many entries do we need to store to represent $A_k$ for general $A\in\mathbb{R}^{m\times n}$?
+        Using this, interpret $A_k$ as a lossy compression scheme for a matrix $A$.
+\end{enumerate}
+\end{problem}
+
+\begin{solution}
+    \vfill
+\end{solution}
+
+\end{document}
