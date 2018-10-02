@@ -3,19 +3,19 @@
 \usepackage{graphicx}
 \usepackage{amsmath,amssymb}
 \usepackage{algorithm2e}
-\usepackage{enumerate}
+\usepackage{enumerate,hyperref}
 
 % info for header block in upper right hand corner
 \name{-----------}
 \class{Math 173}
-\assignment{Problem Set 3}
-\duedate{September 19, 2018}
+\assignment{Problem Set 4}
+\duedate{October 8, 2018}
 \setlength\parindent{0pt}
 
 \begin{document}
 
 \begin{problem}[1]
-    
+    Give an example of two norms on a vector space $\mathcal{V}$ that are \emph{not} equivalent.
 \end{problem}
 
 \begin{solution}
@@ -23,7 +23,10 @@
 \end{solution}
 
 \begin{problem}[2]
-    
+    Let $(\mathcal{V},\|\cdot\|)$ be a normed space. Prove that
+    the closed unit ball $B = \{x\in \mathcal{V} : \|x\|\leq 1\}$ is compact if and
+    only if $\mathcal{V}$ is finite dimensional. \textit{Hint:} Find a sequence in
+    $B$ that has no convergent subsequence; use norm equivalence.
 \end{problem}
 
 \begin{solution}
@@ -31,10 +34,20 @@
 \end{solution}
 
 \begin{problem}[3]
+    Let $A\in\mathsf{M}_n(\mathbb{R})$. Prove that the Schatten-$p$ norm
+    $\|A\|_p^p = \operatorname{tr}(|A|^p)$, where the operator absolute value
+    $|A|$ is equal to the positive semidefinite square root of $A^*A$.
+\end{problem}
+
+\begin{solution}
+    \vfill
+\end{solution}
+
+\begin{problem}[4]
     Let $A\in\mathbb{C}^{m\times n}$ and decompose $A = U \Sigma V^*$ into its singular value
     decomposition where $\Sigma$ is the diagonal matrix composed of the singular values
     $\sigma_1\geq\sigma_2\geq \dots\geq 0$. Write $\Sigma_k = \operatorname{diag}\{\sigma_1,\sigma_2
-    ,\ldots,\sigma_k\}$ for $k=1,2,\ldots,\max\{m,n\}$ and define the truncated singular value decomposition
+    ,\ldots,\sigma_k,0,0,\ldots\}$ for $k=1,2,\ldots,\max\{m,n\}$ and define the truncated singular value decomposition
     $A_k = U\Sigma_k V^*$. Prove\footnote{As we'll see later in the course, this says that the distance between
     $A$ and $A_k$ in the so-called \emph{spectral norm} is $\sigma_{k+1}$. It turns out that this is the
     \emph{best} rank-$k$ approximation to $A$ in both the spectral and Frobenius norms.}
@@ -45,7 +58,7 @@
     \vfill
 \end{solution}
 
-\begin{problem}[4]
+\begin{problem}[5]
     Load the image located at \url{https://math173.github.io/img/dog.jpg} into a computational language of your choice.
     We can think of this grayscale image as a matrix $A\in\mathbb{R}^{m\times n}$. Where each element $A_{ij}$ is
     the intensity of the pixel $A_{ij}$.
@@ -60,5 +73,16 @@
 \begin{solution}
     \vfill
 \end{solution}
+\clearpage
 
+\begin{problem}[Extra (Not Optional)]
+    Write a short (less than half a page, more than a quarter) but thoughtful proposal
+    for your midterm project. Be concrete about what specific problem in linear algebra
+    (broadly defined) you'd like to investigate.
+    Consult with the teaching staff if you'd like any assistance finding a topic.
+\end{problem}
+
+\begin{solution}
+    \vfill
+\end{solution}
 \end{document}
