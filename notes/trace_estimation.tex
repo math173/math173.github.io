@@ -1,0 +1,599 @@
+\documentclass[10pt,letterpaper]{siamart171218}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb}
+\usepackage{enumerate}
+\usepackage{tikz}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage[round]{natbib}
+\usepackage[ruled]{algorithm2e}
+
+\setlength\parindent{0pt}
+\renewcommand\qedsymbol{$\blacksquare$}
+\theoremstyle{definition}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{openproblem}[theorem]{Open Problem}
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+
+\title{Trace Estimation as an Algorithmic Primitive}
+\author{Conner DiPaolo\thanks{Harvey Mudd College (\email{cdipaolo@hmc.edu})}}
+\date{Monday, October 15, 2018}
+
+\newcommand\inner[1]{\langle #1 \rangle}
+\newcommand\R{\mathbb{R}}
+\newcommand\C{\mathbb{C}}
+\newcommand\M{\mathsf{M}}
+\renewcommand\P{\mathbf{P}}
+\newcommand\E{\mathbf{E}}
+\renewcommand\O{\mathcal{O}}
+\newcommand\Var{\mathbf{Var}}
+\newcommand\tr{\operatorname{tr}}
+\newcommand\N{\mathcal{N}}
+
+\newcommand\A{\boldsymbol{A}}
+\newcommand\U{\boldsymbol{U}}
+\renewcommand\L{\boldsymbol{\Lambda}}
+\renewcommand\S{\boldsymbol{\Sigma}}
+\newcommand\I{\boldsymbol{I}}
+\newcommand\x{\boldsymbol{x}}
+\newcommand\z{\boldsymbol{z}}
+\newcommand\g{\boldsymbol{g}}
+\renewcommand\r{\boldsymbol{r}}
+\newcommand\e{\boldsymbol{e}}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+    This lecture note details motivation, results, and upper/lower
+    sample complexity bounds for estimating the trace of large matrices when
+    computing elements of $\A$ is about as slow as computing
+    $\inner{\A\x,\x}$ for vectors $\x$.
+\end{abstract}
+
+\section{Motivation: Computing Schatten Norms}
+
+Let $\A$ be any positive definite matrix in $\M_n$. We're going
+to assume that $\A$ is real but these results largely carry over
+directly to the complex case. This matrix might represent the
+error of a low rank matrix factorization, or might specify
+something about the curvature of the loss surface of a deep
+neural network. In both cases, knowing how `large' $\A$ is,
+in some norm, would help us determing how good the factorization
+is or how drastically our loss surface is curving.\\
+
+For whatever reason, let's suppose we want to measure $\A$ in
+a Schatten-$p$ norm, where $p=1,2,\ldots < \infty$ is an
+integer.
+
+\begin{definition}
+    Let $\lambda_1\geq \lambda_2\geq \cdots \geq \lambda_n$ be the
+    singular values of $\A$ (which are the same as the eigenvalues
+    since $\A$ is positive definite). The Schatten-$p$ norm
+    of $\A$ is
+    \[
+        \|\A\|_p^p = \sum_{i=1}^n \lambda_1^p = \tr(\A^p).
+    \]
+\end{definition}
+
+The normal procedure for computing $\|\A\|_p$ goes as follows.
+
+\begin{algorithm}[H]
+    \KwData{A positive semi-definite matrix $\A\in\M_n$ and an
+    integer $p=1,2,\ldots<\infty$.}
+    \KwResult{The Schatten-$p$ norm $\|A\|_p$ using
+    $\tfrac{4}{3}n^3 + np + 17 =\O(n^3 + np)$ flops.}
+
+    Overwrite $\A$ with $\operatorname{diag}(\lambda_1,\ldots,\lambda_n)$ using $\sim 4n^3/3$ flops. \cite[Alg\,8.3.3]{golub2012matrix}
+
+    Compute $\A \leftarrow \A^p$ using $n(p-1)$ flops.
+
+    Compute $\tr\A = \sum_{i=1}^n \A_{ii}$ using $n-1$ flops.
+
+    Return $\|\A\|_p^p = (\tr\A)^{1/p}$ using about $18$ flops.
+
+    \caption{Naive Schatten norm computation}\label{alg:schatten}
+\end{algorithm}
+
+But what happens when $n$ is large, say
+$n\geq 10,000$? Then the $n^3$ computation time can become
+unbearable because the eigendecomposition becomes slow. Indeed,
+on my 1.4GHz computer the estimated computation time
+for arbitrary $\A$ is at least a day for $n=50,000$ and
+$p=2$. What can
+we do to speed this up? In particular, how can we drop the $n^3$
+dependence?\\
+
+Well, one way to do this is to note that for any $\x$,
+we can compute $\A\x$ in $2n^2-n$ flops, and as a result
+we can compute $\A^p\x$ in $p(2n^2-n) = 2n^2p - np$ flops.
+In particular, we can compute $\inner{\A^p\x,\x}$ in
+$2n^2p - np + 2n - 1$ flops. Now
+\[
+    \|\A\|_p^p = \tr\A^p = \sum_{i=1}^n \A^p_{ii} = \sum_{i=1}^n \inner{\A^p\e_i,\e_i},
+\]
+so naive computation in this form gives an algorithm
+for computing the Schatten-$p$ norm in
+$n(2n^2p-np+2n-1) = 2n^3p - n^2p + 2n^2 - n+18 = \O(n^3p)$ flops.
+Immediately, this performs worse than our original Algorithm
+\ref{alg:schatten}, but this provides an interesting interpretation
+of $\|\A\|_p^p$ as an expectation.
+\[
+    \|\A\|_p^p = n\E \inner{\A^p\e_i,\e_i}\text{, where }i\sim\operatorname{Uniform}\{1,2,\ldots,n\}.
+\]
+If we take a hint from Monte-Carlo methods (as well as ideas
+from the world of concentration inequalities), this means that
+the following randomized algorithm should return a good
+\emph{estimate} for $\|\A\|_p$ with high probability, while
+requiring significantly fewer flops for large $n$.
+
+\begin{algorithm}[H]
+    \KwData{Positive semi-definite $\A\in\M_n$,
+    integer $p=1,2,\ldots<\infty$, and accuracy parameter $m\in\{1,2,\ldots\}$}
+    \KwResult{Estimated Schatten-$p$ norm $S\approx\|\A\|_p$ using
+    $2mn^2p - mnp + m+19 =\O(mn^2p)$ flops.}
+
+    Initialize $S\leftarrow 0$.
+
+    Initialize $\x\leftarrow 0\in\C^n$.
+
+    \For{$1\leq k \leq m$}{
+    Sample an index $i\sim\operatorname{Uniform}\{1,2,\ldots,n\}$.
+
+        Let $\x\leftarrow \e_i$.
+
+        \For{$1\leq j \leq p$}{
+            Compute $\x\leftarrow \A\x$ using $2n^2 - n$
+        }
+
+        Accumulate $S \leftarrow S + \x_i$ using $1$ flop.
+    }
+
+    Let $S\leftarrow \frac{n}{m}S$ using $1$ flop.
+
+    Return $\|\A\|_p \approx S^{1/p}$ using about $18$ flops.
+
+    
+    \caption{Naive randomized Schatten norm computation}\label{alg:schattenrand}
+\end{algorithm}
+
+Actual bounds on how good of an estimate Algorithm
+\ref{alg:schattenrand} returns will follow from results
+in the later sections, and are provided explicitly in
+\cite[Thm\,69]{woodruff2014sketching},
+but for now just remark how the simple realization that the
+trace is an expected inner product
+\[
+    \tr(\A^p) = n\E \inner{\A^p\e_i,\e_i} = \E\inner{\A^p \sqrt{n}\e_i,\sqrt{n}\e_i}\text{, where }i\sim\operatorname{Uniform}\{1,2,\ldots,n\}.
+\]
+allowed us to drop an $n^3$ dependence in our algorithm
+to a randomized algorithm with $n^2$ dependence without
+bringing in any heavy machinery. One thing we can say without
+any real work is that Algorithm \ref{alg:schattenrand} returns
+an estimate $S_m \to \|\A\|_p$ as $m\to\infty$ by the law of
+large numbers. \cite[Thm\,5.18]{wasserman2013all} This
+follows since by positive definiteness
+$\mu = \E|\inner{\A^p\sqrt{n}\e_i,\sqrt{n}\e_i}| =
+\E\inner{\A^p\sqrt{n}\e_i,\sqrt{n}\e_i} = \tr(\A^p) < \infty$.
+
+\subsection{Trace Estimation as an Algorithmic Primitive}
+
+The above progress for Schatten norm estimation made progress
+by representing our quantity of interest as a trace, and then
+applying randomized trace estimators to give us our quantity
+of interest. This idea has become a canonical tool for
+computing traces of functions of matrices represented by
+power series. Indeed, if we want to compute some function
+$\tr(f(\A))$ where
+\[
+    f(x) = \sum_{n=0}^\infty a_n x^n
+\]
+is analytic, then
+\[
+    \tr\bigl(f(\A)\bigr) = \sum_{n=0}^\infty a_n\tr(\A^n) \approx \sum_{n=0}^N a_n \tr(\A^n)
+\]
+for some small $N$ depending on $f$ and $\A$.
+From here we can approximate
+further each $\tr(\A^n)$ by a trace estimator to compute an
+approximation to the original quantity of interest $\tr(f(\A))$.
+This exact idea has been used to create fast input-sparsity time
+algorithms for computing
+\[
+    \log\det(\I+\A) = \tr\log(\I+\A) = \sum_{n=1}^\infty \frac{(-1)^{n+1}}{n}\tr(\A^n)
+\]
+in the recent work of \cite{boutsidis2017randomized}. Trace
+estimation has been used as a primitive for creating better
+algorithms for counting the number of triangles in large
+graphs, \citep{avron2010counting} counting the number of eigenvalues
+of a matrix inside an interval, \citep{di2016efficient} and even estimating
+the entire spectrum of matrices. \citep{adams2018estimating} In the coming sections, we will
+go into detail on this primitive, why it works, and why we can't
+hope to do better by other means.
+
+\subsection{Computing Traces}
+
+Trace computation is easy if we have full access to a matrix $\A$.
+Indeed,
+\[
+    \tr\A = \sum_{i=1}^n \A_{ii}
+\]
+can be computed in $n-1$ flops.
+But what if we don't have direct access to $\A$, or in particular
+if computing $\A_{ii}$ takes about as long as computing $\x^*\A\x$
+for any input vector $\x$? The above motivation suggests a natural
+algorithmic process for computing the trace of matrices of this
+type. We start with some random vector $\r$ distributed so
+that
+\[
+    \E \inner{\A\r,\r} = \tr\A
+\]
+for all positive matrices $\A\in\M_n$. From then, we sample
+$m$ identical and independent copies of $\r$:
+$\r_i$ for $i=1,2,\ldots,m$. Finally, we return
+\[
+    T_m = \frac{1}{m}\sum_{i=1}^n \inner{\A\r_i,\r_i} \approx \tr\A
+\]
+For which random vectors $\r$ does this informal algorithm
+work? Well, it must be that $\E\inner{\A\r,\r} = \tr\A$,
+so by the previous section we know $\r \sim
+\operatorname{Uniform}\{\sqrt{n}\e_i\}$ works. It turns out
+that a much larger class of vectors works, however.
+
+\begin{theorem}\label{thm:whichvectors}
+    $\E\inner{\A\r,\r} = \tr\A$ for all positive definite
+    $\A\in\M_n$ if and only if $\E\r\r^* = \E\r\otimes\r = \I$.
+\end{theorem}
+\begin{proof}
+    By linearity and the cyclic properties of the trace,
+    \[
+        \E\inner{\A\r,\r} = \E\tr(\r^*\A\r) = \E\tr(\A\r\r^*) = \tr\bigl(\A(\E\r\r^*)\bigr) 
+    \]
+    Let $\S = \E\r\r^*$. If $\S = \I$ then clearly
+    $\E\inner{\A\r,\r} = \tr(\A\S) = \tr(\A)$ for all $\A\in\M_n$.
+    On the other hand, if
+    \[
+        \tr(\A\S) = \tr(\A)
+    \]
+    for all positive \emph{semi}-definite $\A\in\M_n$ then in
+    particular
+    \[
+        \S_{ii} = \e_i^*\S\e_i = \tr(\e_i\e_i^*\S) = \tr(\e_i\e_i^*) = 1.
+    \]
+    But then
+    \[
+        2 + 2\S_{ij} = \S_{ii} + \S_{jj} + 2\S_{ij} = \tr\bigl((\e_i+\e_j)(\e_i+\e_j)^*\S\bigr) = \tr(\e_i + \e_j)(\e_i + \e_j)^* = 2
+    \]
+    by the same logic so $\S_{ij} = 0$ for $i\neq j$. In sum
+    $\S = \I$ if $\E\inner{\A\r,\r} = \tr\A$ for all positive
+    \emph{semi}-definite $\A$. But by constructing
+    positive semi-definite matrices as a limit of strictly
+    positive definite matrices (e.g. by adding $\epsilon\I$)
+    this also holds if $\E\inner{\A\r,\r} = \tr\A$ for
+    only the strictly positive definite matrices.
+\end{proof}
+
+This implies that standard normal vectors
+$\r \sim\mathcal{N}(0,\I)$ as well as Rademacher vectors
+$\r \sim \operatorname{Uniform}\{-1,1\}^n$ both work for
+constructing trace estimators.
+
+\section{Upper Bounds on Performance of the Hutchinson Estimator}
+
+The above work suggests that if
+\(
+    \r_i \sim\operatorname{Uniform}\{-1,1\}^n
+\)
+are identical and independent Rademacher random vectors then
+\[
+    H_m = \frac{1}{m}\sum_{i=1}^m \inner{\A\r_i,\r_i} \to \tr\A
+\]
+almost surely for any fixed matrix $\A$ are $m\to\infty$. We can get a
+more quantitative bound on the performance if $\A$ is known to be positive
+semi-definite, though.
+
+\begin{theorem}[Roosta-Khorasani and Ascher Thm\,1]\label{thm:hutch}
+    If $\A\in\M_n$ is positive semi-definite, then
+    \[
+        \P\bigl(|H_m - \tr\A| > \epsilon\tr\A\bigr) < 2e^{-\tfrac{m}{2}\bigl(\tfrac{\epsilon^2}{2} - \tfrac{\epsilon^3}{3}\bigr)}.
+    \]
+    In other words, if $m \geq \tfrac{12\log(\tfrac{2}{\delta})}{\epsilon^2(3-2\epsilon)}$ then
+    the relative error $|H_m - \tr\A| \leq \epsilon\tr\A$ with probability at least $1-\delta$.
+    Moreover, if $\epsilon < \tfrac{1}{2}$, then $m \geq \tfrac{6}{\epsilon^2}\log\tfrac{2}{\delta}$
+    implies the relative error $|H_m - \tr\A| \leq \epsilon\tr\A$ with probability at least $1-\delta$.
+\end{theorem}
+
+Note crucially that the necessary number of queries $m$ needed to construct an
+$\epsilon$-relative error approximation to $\tr\A$ with high probability doesn't depend
+on the dimensions of $\A$, which is why this approach lends itself so well
+to reducing dimension dependence of computational algorithms.\\
+
+The proof of Theorem \ref{thm:hutch} is surprisingly tedious, and crucially relies on a sequence of
+results from \cite{achlioptas2001database} which bound the moment generating function of the square of a projection
+of a Rademacher by reducing to a Gaussian case. To avoid these troubles, we will prove the identical result for an
+analogous estimator
+\[
+    G_n = \frac{1}{m}\sum_{i=1}^m \inner{\A\g_i,\g_i}
+\]
+where $\g_i \sim \mathcal{N}(0,I)$ identically and independently. Actually sampling Gaussian
+vectors and computing $G_n$ takes a bit more work than $G_n$, but from a statistical perspective
+these work just as well. Note that the result presented here is stronger than
+that presented as \citep[Thm\,3]{roosta2015improved}, and brings the current best known
+sample complexity for trace estimators of Hutchinson type to a tie between the Gaussian
+and Rademacher cases.
+
+\begin{theorem}\label{thm:gauss}
+    If $\A\in\M_n$ is positive semi-definite, then
+    \[
+        \P\bigl(|G_m - \tr\A| > \epsilon\tr\A\bigr) < 2e^{-\tfrac{m}{2}\bigl(\tfrac{\epsilon^2}{2} - \tfrac{\epsilon^3}{3}\bigr)}.
+    \]
+    In other words, if $m \geq \tfrac{12\log(\tfrac{2}{\delta})}{\epsilon^2(3-2\epsilon)}$ then
+    the relative error $|G_m - \tr\A| \leq \epsilon\tr\A$ with probability at least $1-\delta$.
+    Moreover, if $\epsilon < \tfrac{1}{2}$, then $m \geq \tfrac{6}{\epsilon^2}\log\tfrac{2}{\delta}$
+    implies the relative error $|G_m - \tr\A| \leq \epsilon\tr\A$ with probability at least $1-\delta$.
+\end{theorem}
+
+\begin{proof}
+    Diagonalize $\A = \U\L\U^*$ where $\U$ is unitary and $\L$ is diagonal. Let
+    $\z_i = \U^*\g_i$ so that
+    \begin{align*}
+        \P\bigl(G_m > (1+\epsilon)\tr\A\bigr) &= \P\biggl(\sum_{i=1}^m \g_i^*\A\g_i > (1+\epsilon)\tr\A\biggr)\\
+        &= \P\biggl(\sum_{i=1}^m \z_i^* \L\z_i > m(1+\epsilon)\tr\A\biggr)\\
+        &= \P\biggl(\sum_{i=1}^m \sum_{j=1}^n \lambda_j \z_{ij}^2 > m(1+\epsilon)\tr\A\biggr)\\
+        &= \P\biggl(\sum_{j=1}^n\frac{\lambda_j}{\tr\A}\sum_{i=1}^m \z_{ij}^2 > m(1+\epsilon)\biggr)\\
+        &= \P\biggl(\exp\biggl(t\sum_{j=1}^n\frac{\lambda_j}{\tr\A}\sum_{i=1}^m \z_{ij}^2\biggr) > e^{(1+\epsilon)mt}\biggr)\\
+        &\leq e^{-(1+\epsilon)mt}\,\E\exp\biggl(\sum_{j=1}^n\frac{\lambda_j}{\tr\A}\sum_{i=1}^m t\z_{ij}^2\biggr)\\
+    \end{align*}
+    for $t>0$ by Markov's inequality. \citep[Thm\,4.1]{wasserman2013all}
+    Now by convexity of the exponential and linearity of expectation
+    \begin{align*}
+        \E\exp\biggl(\sum_{j=1}^n\frac{\lambda_j}{\tr\A}\sum_{i=1}^m t\z_{ij}^2\biggr) &\leq \sum_{j=1}^n \frac{\lambda_j}{\tr\A}\E\exp\biggl(\sum_{i=1}^m t \z_{ij}^2\biggr) = \sum_{j=1}^n \frac{\lambda_j}{\tr\A}\prod_{i=1}^m \E e^{t\z_{ij}^2}
+    \end{align*}
+    since $\lambda_i \geq 0$ and $\sum_{i=1}^n \lambda_i = \tr\A$, and for a fixed
+    $j$, $\z_{ij}$ are independent and identically distributed. Now, to bound the moment
+    generating function, observe that $\z_i$ are just independent standard normal vectors
+    by the rotation invariance of the Gaussian and unitary nature of $\U$. This implies
+    that $\z_{ij} \sim \mathcal{N}(0,1)$ and hence $\z_{ij}^2$ is just a $\chi^2$ random
+    variable with one degree of freedom. We then know (see \cite{wasserman2013all}) that
+    \[
+        \E e^{t\z_{ij}^2} = \frac{1}{\sqrt{1-2t}}
+    \]
+    so long as $0 < t < 1/2$. This implies that
+    \[
+        \E\exp\biggl(\sum_{j=1}^n\frac{\lambda_j}{\tr\A}\sum_{i=1}^m t\z_{ij}^2\biggr) \leq \biggl(\frac{1}{\sqrt{1 - 2t}}\biggr)^m
+    \]
+    for these $0 < t < 1/2$ and hence taking $t = \tfrac{1}{2}\tfrac{\epsilon}{1+\epsilon} < 1/2$ we have
+    \[
+        \P\bigl(G_m > (1+\epsilon) \tr\A\bigr) \leq \biggl(\frac{1}{\sqrt{1 - 2t}}\biggr)^m e^{-(1+\epsilon)mt} = \biggl((1+\epsilon) e^{-\epsilon}\biggr)^{m/2} < e^{-\tfrac{m}{2}\bigl(\tfrac{\epsilon^2}{2} - \tfrac{\epsilon^3}{3}\bigr)},
+    \]
+    relying on the fact that $(1 + \epsilon)e^{-\epsilon} < e^{\tfrac{\epsilon^3}{3}-\tfrac{\epsilon^2}{2}}$
+    for all $\epsilon > 0$, verifiable by simple calculus. Essentially the same argument for
+    the lower tail tells us via a union bound that
+    \[
+        \P(|G_m - \tr\A| > \epsilon\tr\A) < 2 e^{-\tfrac{m}{2}\bigl(\tfrac{\epsilon^2}{2}-\tfrac{\epsilon^3}{3}\bigr)}.
+    \]
+    
+\end{proof}
+
+\section{Lower Bounds}
+
+We've illustrated extremely simple randomized algorithms for estimating
+the trace of a large matrix with implicit access. Moreover, we've shown
+upper bounds on these algorithms that guarantee fast performance with
+only $\tfrac{6}{\epsilon^2}\log\tfrac{2}{\delta}$ queries to $\A$.
+Nevertheless, questions still remain. Can we estimate traces with the same
+number of queries to $\A$ without using any randomness? Perhaps better
+estimators for the trace exist that only need $\tfrac{6}{\epsilon}\log\tfrac{2}{\delta}$
+or $\tfrac{6}{\epsilon^2}\log\log\tfrac{2}{\delta}$ queries to $\A$.
+This section will illustrate why these conjectures are both false.
+
+\subsection{Deterministic Algorithms Can't Estimate Traces}
+
+Let's assume we have an oracle $\O : \x\mapsto \A\x$ and we'd like to deterministically
+estimate the trace of $\A$ by sequentially submitting queries $m$ to $\O$, perhaps performing
+an uncomputable amount of work in between or rounds or after the querying process.
+The following theorem essentially says that the only real way to get an estimator $T_n$ from this process with
+relative error
+\[
+    |T_m - \tr\A| < \tr\A
+\]
+is to just compute
+\[
+    T_n = \sum_{i=1}^n \inner{\O(\e_i),\e_i} = \sum_{i=1}^n \A_{ii} = \tr\A
+\]
+exactly.
+
+\begin{theorem}
+    Any deterministic trace estimator $T_m$ satisfying
+    \[
+        |T_m - \tr\A| \leq \epsilon\tr\A
+    \]
+    for all positive semi-definite matrices $\A\in\M_n$ and some
+    $0<\epsilon < 1$ requires $m\geq n$.
+\end{theorem}
+\begin{proof}
+    We will follow via a resisting oracle. In particular, let's suppose that $\O$
+    returns $\O(\x_i) = 0$ for the first $n-1$ queries $\x_1,\x_2,\ldots,\x_{n-1}$.
+    At this point, both the zero matrix $\A_1 = 0$ and the orthogonal projection
+    onto the orthogonal complement of the span of $\{\x_1,\x_2,\ldots,\x_{n-1}\}$
+    $\A_2$ would return the $0$ for these queries. If we output an estimator
+    $T_m = T_{n-1}$ which satisfied
+    \[
+        |T_m - \tr\A| \leq \epsilon\tr\A
+    \]
+    for all positive semi-definite matrices $\A\in\M_n$, then since $\A_1$ is positive
+    semi-definite this series of responses by $\O$ would ensure
+    \[
+        |T_m| = |T_m - \tr\A_1| \leq \epsilon\tr\A_1 = 0,
+    \]
+    so $T_m = 0$. On the other hand, the matrix $\A_2$ would give the same sequence
+    of responses by $\O$ and so by determinism
+    \[
+        \tr\A_2 = |\tr\A_2| = |T_m - \tr\A_2| \leq \epsilon\tr\A_2 < \tr\A_2,
+    \]
+    a contradiction. It follows that at least $n$ queries to $\O$ are needed
+    to guarantee this uniform error bound deterministically.
+\end{proof}
+
+\subsection{Simple Lower Bounds for Simple Randomized Trace Estimators}
+
+The next section will reference much more general lower bounds for randomized
+trace estimation. Those proofs are long and tedious. This section will present
+simple lower bounds due to the author and Weiqing Gu that guarantee the
+tightness of \cite{roosta2015improved} without a ton of heavy machinery, at the
+expense of the full generality of the bounds of \cite{wimmer2014optimal}.\\
+
+Recall that the Hutchinson estimator of the trace of a matrix $\A\in\M_n$ is 
+\[
+    H_m = \frac{1}{m}\sum_{i=1}^m \inner{\A\r_i,\r_i}
+\]
+where $\r_i\sim\operatorname{Uniform}\{-1,1\}^n$ independently and identically.
+For this section, we will call $H_n$ a Hutchinson-type estimator for the trace of
+a matrix $\A$ if
+\[
+    H_m = \frac{1}{m}\sum_{i=1}^m \inner{\A\r_i,\r_i}
+\]
+where $\E\r_i\r_i^* = \I$ and $\r$ is real almost surely.
+Recall from Theorem \ref{thm:whichvectors} that $H_n\to\tr\A$
+almost surely. While the original Hutchinson estimator returns the trace exactly in
+one query for diagonal matrices, it happens that every Hutchinson-type estimator has
+some matrix $\A$ for which $\Var(H_m) > 0$.
+
+\begin{lemma}
+    If the real random vector $\r$ satisfies $\E\r\r^* = \I$, then $\Var(\inner{\A\r,\r})
+    >0$ for some positive semi-definite $\A\in\M_n$.
+\end{lemma}
+\begin{proof}
+    In light of Theorem \ref{thm:whichvectors},
+    suppose to the contrary that $\inner{\A\r,\r} = \tr\A$ almost surely for
+    every positive semi-definite $\A\in\M_n$. In particular,
+    \[
+        \r_i^2 = \inner{\e_i\e_i^*\r,\r} = \tr \e_i\e_i^* =1
+    \]
+    almost surely for all $i,j=1,2,\ldots,n$, so $\r\in\{-1,1\}^d$ almost surely.
+    On the other hand, if $\r_i\neq \r_j$ with positive probability for some $i\neq j$
+    we would have
+    \[
+        0 = (\r_i + \r_j)^2 = \inner{(\e_i+\e_j)(\e_i+\e_j)^*\r,\r} = \tr(\e_i+\e_j)(\e_i+\e_j)^* = 2
+    \]
+    with positive probability, a contradiction, so almost surely every component
+    of $\r$ is the same. But then $0 = \E \r_i\r_j = \E \r_i^2 = 1$, contradicting
+    our assumption that $\E\r\r^* = \I$.
+\end{proof}
+
+The following theorem relies weakly on the above lemma to say that any Hutchinson-type
+estimator needs $\Omega(\tfrac{1}{\epsilon^2}\log\tfrac{1}{\delta})$ queries to $\A$
+in order to achieve an $\epsilon$-relative error approximation to $\tr\A$ with
+probability at least $1-\delta$. Recall that $W$ is the Lambert-W function,
+satisfying $W(x) = \log x - \log\log x + o(1) = \Theta(\log x)$ as $x\to\infty$.
+\citep{hoorfar2007approximation}
+
+\begin{theorem}
+    Fix $0 < \delta < \tfrac{1}{10}$. For every Hutchinson-type estimator $H_n$
+    there exists a positive semi-definite matrix $\A\in\M_n$ and an $\epsilon_0>0$ so that
+    \[
+        \P\bigl(|H_n - \tr\A| > \epsilon\tr\A\bigr) > \delta
+    \]
+    whenever $0 <\epsilon < \epsilon_0$ and $n = \lfloor\tfrac{\Var(\inner{\A\x,\x})}{\tr(\A)^2}
+    \tfrac{1}{\epsilon^2} W(\tfrac{2/\pi}{\delta^2})\rfloor = \Theta(\tfrac{1}{\epsilon^2}
+    \log\tfrac{1}{\delta})$.
+\end{theorem}
+\begin{proof}
+    Pick $\A$ so that $\Var(\inner{\A\r,\r}) > 0$ by the lemma.
+    If $Z\sim\N(0,1)$ is a standard normal random variable then
+    \[
+        \P\bigl(|Z| > t\bigr) = 2\P(Z > t) > \sqrt{\frac{2}{\pi}}\frac{t}{t^2 + 1}e^{-t^2} \geq \frac{1}{\sqrt{2\pi}}\frac{1}{t}e^{-t^2}
+    \]
+    when $t \geq 1$. \citep{cook2009upper} Setting the right hand side to $2\delta$ and solving
+    gives
+    \[
+        \P\bigl(|Z| > 2^{-1/2}\sqrt{W(\pi^{-1}\delta^{-2})}\bigr) > 2\delta
+    \]
+    whenever $2^{-1/2}\sqrt{W(\pi^{-1}\delta^{-2})}\geq 1$ or
+    $0 < \delta \leq (e\sqrt{2\pi})^{-1}$. This is satisfied when $0 < \delta < \tfrac{1}{10}$.
+    If we fix $n = \lfloor\tfrac{\Var(\inner{\A\x,\x})}{\tr(\A)^2}
+    \tfrac{1}{\epsilon^2} W(\tfrac{2/\pi}{\delta^2})\rfloor$ and write
+    $\sigma^2 = \Var(\inner{\A\r,\r}) > 0$,
+    \[
+        \P\bigl(|H_n - \tr\A| > \epsilon\tr\A\bigr) = \P\biggl(\frac{\sqrt{n}}{\sigma}|H_n - \tr\A| > \frac{\sqrt{n}}{\sigma}\epsilon\tr\A \biggr) \geq \P\biggl(\frac{\sqrt{n}}{\sigma}|H_n - \tr\A| > \frac{1}{\sqrt{2}}\sqrt{W(\pi^{-1}\delta^{-2})}\biggr).
+    \]
+    Conveniently, the latter expression converges to
+    $\P(|Z| \geq 2^{-1/2}\sqrt{W(\pi^{-1}\delta^{-2})})$ as $n\to\infty$,
+    \citep[Thm\,5.10]{wasserman2013all} and so
+    \[
+        \lim_{\epsilon\to 0}\P\bigl(|H_n - \tr\A| > \epsilon\tr\A\bigr) > 2\delta.
+    \]
+    This implies the existence of an $\epsilon_0>0$ so that $0 < \epsilon < \epsilon_0$
+    ensures $\P(|H_n - \tr\A| > \epsilon\tr\A) > \delta$ under our relation defining
+    $n$.
+\end{proof}
+
+\subsection{Generic Lower Bounds}
+
+Somewhat recent work by \cite{wimmer2014optimal} has shown that the upper bounds
+given by \cite{roosta2015improved} are tight: no algorithm that can sequentially
+submit vectors $\x$ to an oracle $\O : \x\mapsto \inner{\A\x,\x}$ and possibly estimate
+the trace of $\A$ unless $\Omega(\tfrac{1}{\epsilon^2}\log\tfrac{1}{\delta})$ queries
+to $\A$ are made. In particular, Wimmer, Wu, and Zhang prove the following sequence
+of Theorems.
+
+\begin{theorem}[Wimmer et al. Thm\,1]
+    If we consider estimators for $\tr\A$ that pre-decide a distribution
+    over queries $(\r_1,\r_2,\ldots,\r_m)$ as well as weights $(w_1,
+    w_2,\ldots,w_n)$ and output
+    \[
+        T_m = \sum_{i=1}^m w_i\O(\r_i),
+    \]
+    the minimum variance estimator for which
+    $\E T_m = \tr\A$ uniformly on $\M_n$ is achieved by sampling
+    $\{\r_i\}$ as a collection of $m$ orthogonal unit vectors and outputting
+    \[
+        T_m^\star = \frac{n}{m}\sum_{i=1}^m \O(\r_i)
+    \]
+\end{theorem}
+
+\begin{theorem}[Wimmer et al. Thm\,2]
+    Any possibly nonlinear or adaptive estimator for the trace of a matrix
+    $\A$ that sequentially submits random queries $\r_i$ to $\O$ after seeing the previous
+    $i-1$ queries needs $\Omega(1/\epsilon)$ queries to achieve $\epsilon$ mean
+    squared error uniformly across all matrices with Frobenius norm 1.
+\end{theorem}
+
+\begin{theorem}[Wimmer et al. Thm\,3]
+    Any possibly nonlinear or adaptive estimator for the trace of a matrix
+    $\A$ that sequentially submits random queries $\r_i$ to $\O$ after seeing the previous
+    $i-1$ queries needs $\Omega(\tfrac{1}{\epsilon^2}\log\tfrac{1}{\delta})$ queries
+    to output an estimator $T_m$ that satisfies
+    \[
+        \P\bigl(|T - \tr\A| > \epsilon\tr\A\bigr) \leq \delta
+    \]
+    for any rank-one positive definite matrix $\A$.
+\end{theorem}
+
+The proofs of these theorems are long and beyond the scope of this lecture. See
+\cite{wimmer2014optimal} for more details.\\
+
+As we saw in the case of Schatten norm estimation, the common algorithmic setting
+we have isn't an oracle mapping $\x\mapsto \inner{\A\x,\x}$, but rather an oracle
+which can tell us $\A\x$ for any given $\x$. Thus, while the lower bounds of
+\cite{wimmer2014optimal} are interesting, correct, and relevant, the following open
+problem really gets to the heart of the fundamental problem of trace estimation as
+it is actually used in practice.
+
+\begin{openproblem}
+    If we have access to an oracle $\O : \x \mapsto \A\x$,
+    is it true that $\Omega(\tfrac{1}{\epsilon^2}\log\tfrac{1}{\delta})$
+    queries to $\O$ are needed to return a (possibly adaptive and nonlinear) estimator
+    $T$ for the trace of $\A$ with
+    \[
+        \P\bigl(|T - \tr\A| > \epsilon\tr\A\bigr) \leq \delta
+    \]
+    for every positive semi-definite matrix $\A$.
+\end{openproblem}
+
+\bibliographystyle{plainnat}
+\bibliography{trace}
+
+\end{document}

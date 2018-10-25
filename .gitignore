@@ -7,5 +7,8 @@
 *.log
 *.out
 *.synctex.gz
+*.bbl
+*.blg
+*.thm
 
 soln/
