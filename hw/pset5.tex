@@ -1,0 +1,78 @@
+\documentclass[12pt,letterpaper,cm]{hmcpset}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb}
+\usepackage{algorithm2e}
+\usepackage{enumerate}
+
+% info for header block in upper right hand corner
+\name{\_\_\_\_\_\_\_\_}
+\class{Math 173}
+\assignment{Problem Set 5}
+\duedate{Monday, October 29, 2018}
+\setlength\parindent{0pt}
+
+\newcommand\x{\boldsymbol{x}}
+\newcommand\y{\boldsymbol{y}}
+\renewcommand\b{\boldsymbol{b}}
+\renewcommand\a{\boldsymbol{a}}
+\newcommand\A{\boldsymbol{A}}
+\renewcommand\S{\boldsymbol{S}}
+\newcommand\E{\mathbb{E}}
+\renewcommand\P{\mathbb{P}}
+
+\begin{document}
+
+\begin{problem}[1]
+    Let $\x_1,\x_2,\ldots,\x_n$ be independent Rademacher random variables
+    (that is, $\x_i = \pm 1$ with equal probability) and $\a=(a_1,a_2,\ldots,a_n)$
+    be a sequence of real numbers.
+\begin{enumerate}[(a)]
+    \item Show that $\E e^{s \x_i} = \cosh(s)$.
+    \item Prove that $\cosh(s) \leq e^{s^2/2}$.
+    \item Use (a), (b), and Markov's inequality to prove that $$\P\biggl(\biggl|\sum_{i=1}^n a_i \x_i\biggr| \geq \epsilon\biggr) \leq e^{-\tfrac{\epsilon^2}{2\|\a\|_2^2}}$$
+\end{enumerate}
+\end{problem}
+
+\begin{solution}
+    \vfill
+\end{solution}
+\clearpage
+
+\begin{problem}[2\footnote{Jelani Nelson, 2013}]
+    In the $k$-means clustering problem we are given some input vectors
+    $\x_1,\x_2,\ldots,\x_m\in\mathbb{R}^n$ and a positive integer $k$,
+    and we'd like to output a partition $P$ of $\{1,2,\ldots,n\}$ into $k$
+    disjoint subsets $P_1,P_2,\ldots,P_k$ and cluster centers $\y_1,\y_2,\ldots,\y_k\in\mathbb{R}^n$.
+    which minimize the function
+    \[
+        f(\{P_i\},\{\y_i\};\{\x_i\}) = \sum_{j=1}^k \sum_{i\in P_j} \bigl\| \x_i - \y_j \bigr\|_2^2.
+    \]
+    That is, the $x_i$ are clustered into $k$ clusters according to $P$. This problem is NP-hard,
+    but good approximation algorithms exist which can return almost-optimal clusterings.
+\begin{enumerate}[(a)]
+    \item For a fixed partition $P$, show that the optimal $\y_1,\y_2,\ldots,\y_k$ is where
+        for every nonempty $P_i\in P$, $$\y_i = \frac{1}{|P_i|}\sum_{j\in P_i} \x_i$$ is just
+        the average of the points in $P_i$. Thus we can restrict ourselves to optimizing over
+        partitions $P$.
+    \item Prove that for a given cluster $P_i$, the optimal cost is just the average pairwise distance
+        between points in that cluster.
+    \item Using the Johnson-Lindenstrauss lemma, show that for any $0 < \epsilon < \tfrac{1}{2}$
+        there is a linear map $\S\in\mathbb{R}^{m\times n}$, $m = \mathcal{O}(\epsilon^{-2}\log m)$
+        such that for all partitions $P$ simultaneously
+        \[
+            (1-\epsilon)f(\{P_i\};\{\x_i\}) \leq f(\{P_i\};\{\S\x_i\}) \leq (1+\epsilon)f(\{P_i\};\{\x_i\})
+        \]
+        and where $\S$ can be found efficiently with a randomized algorithm with small failure probability.
+        Thus if one does not mind worsening the quality of our clusters by a factor $1+\epsilon$, without
+        loss of generality one can assume that the input vectors $\x_1,\x_2,\ldots,\x_m\in\mathbb{R}^n$
+        are in dimension $n = \mathcal{O}(\epsilon^{-2} \log m)$, which can be \emph{much} smaller than the
+        original dimension $n$. \textit{Hint:} Use the Johnson-Lindenstrauss lemma.
+\end{enumerate}
+\end{problem}
+
+\begin{solution}
+    \vfill
+\end{solution}
+
+\end{document}
