@@ -55,8 +55,10 @@
         for every nonempty $P_i\in P$, $$\y_i = \frac{1}{|P_i|}\sum_{j\in P_i} \x_i$$ is just
         the average of the points in $P_i$. Thus we can restrict ourselves to optimizing over
         partitions $P$.
-    \item Prove that for a given cluster $P_i$, the optimal cost is just the average pairwise distance
-        between points in that cluster.
+    \item Prove that for a given cluster $P_i$, the optimal cost is
+        \[
+            \frac{1}{2|P_i|}\sum_{j,k\in P_i}^n \|\x_j-\x_k\|_2^2
+        \]
     \item Using the Johnson-Lindenstrauss lemma, show that for any $0 < \epsilon < \tfrac{1}{2}$
         there is a linear map $\S\in\mathbb{R}^{m\times n}$, $m = \mathcal{O}(\epsilon^{-2}\log m)$
         such that for all partitions $P$ simultaneously
