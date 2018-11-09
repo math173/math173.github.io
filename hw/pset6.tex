@@ -1,0 +1,98 @@
+\documentclass[12pt,letterpaper,cm]{hmcpset}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb}
+\usepackage{algorithm2e}
+\usepackage{enumerate}
+
+% info for header block in upper right hand corner
+\name{\_\_\_\_\_\_\_\_}
+\class{Math 173}
+\assignment{Problem Set 6}
+\duedate{Monday, November 12, 2018}
+\setlength\parindent{0pt}
+
+\newcommand\R{\mathbb{R}}
+\newcommand\Epi{\operatorname{Epi}}
+\newcommand\inner[1]{\langle #1 \rangle}
+\renewcommand\S{\mathbb{S}}
+\newcommand\tr{\operatorname{tr}}
+
+\begin{document}
+
+\begin{problem}[1]
+    Let $\mathcal{V}$ be a real vector space. Prove that
+    a function $f : \mathcal{V} \to \R$ is convex if and only if
+    the epigraph
+    \[
+        \Epi(f) = \bigl\{(x,y) : x\in\mathcal{V},\,y\geq f(x)\bigr\}\subset \mathcal{V}\oplus\R
+    \]
+    is convex.
+\end{problem}
+
+\begin{solution}
+    \vfill
+\end{solution}
+
+\begin{problem}[2]
+    Suppose that $f : \R^n\to\R$ is differentiable. Prove that $f$ is convex
+    if and only if $f(x) \geq f(x_0) + \inner{\nabla f(x_0), x-x_0}$ for every
+    $x_0\in\R^n$. That is, convex functions are those who are always bigger than
+    their linear Taylor approximation. Use this to quickly prove that for a differentiable
+    convex function $f : \R^n\to\R$, $\nabla f(x) = 0$ implies that $f(x) = \inf_{y\in\R^n}f(y)$.
+    \emph{Hint:} Write $\inner{\nabla f(x_0),x-x_0}$ as a limit.
+\end{problem}
+
+\begin{solution}
+    \vfill
+\end{solution}
+
+\begin{problem}[3]
+    Recall that the set $\S_+^n$ of positive semi-definite matrices is convex.
+\begin{enumerate}[(a)]
+    \item Prove the function $A \mapsto \log\det A$ defined on $\S_+^n$ is concave.
+    \item Prove the function $A \mapsto \tr\exp A$ defined on $\S_+^n$ is convex.
+    \item Prove the function $A \mapsto \det A$ defined on $\S_+^n$ is \emph{not} convex.
+\end{enumerate}
+\end{problem}
+
+\begin{solution}
+    \vfill
+\end{solution}
+
+\begin{problem}[4]
+    Suppose that $f : \mathbb{R}^n\to\R$ is convex, and that the eigenvalues $\lambda_i(x)$ of
+    the Hessian $\nabla^2 f(x)$ are uniformly bounded between $0 < \ell < \lambda_i(x) < L$ across
+    all of $\R^n$. Consider the following algorithm, known as \emph{gradient descent}, which finds
+    an approximation $x_T$ to a global minimizer $x^*$ of $f$.
+    
+    \begin{algorithm}[H]
+        \KwData{An arbitrary starting point $x_0\in\R^n$, a step size
+        $0 < \alpha < 2/L$, and a maximum number of iterations $T\in\mathbb{N}$.}
+        \KwResult{An approximate global minimizer $x_T\in\R^n$ to $f$.}
+        
+        \For{$t=1,2,\ldots,T$}{
+            $x_t = x_{t-1} - \alpha\nabla f(x_{t-1})$
+        }
+    \end{algorithm}
+
+    Prove
+    that if $\tfrac{1-q}{\ell}\leq \alpha \leq \tfrac{1+q}{L}$ for some $0 < q < 1$ then
+    \[
+        \|x_T - x^*\|_2 \leq \frac{\alpha q^T}{1-q} \|\nabla f(x_0)\|_2 \leq \frac{2}{L}\frac{q^T}{1-q}\|\nabla f(x_0)\|_2
+    \]
+    That is to say that if we want $\|x_T - x^*\|_2 \leq \epsilon$ then we can just set
+    $$T \geq \log(\tfrac{1}{q})^{-1} \log\biggl(\frac{2\|\nabla f(x_0)\|_2}{\epsilon L (1-q)}\biggr)$$
+    to guarantee this\footnote{It turns out that this is the best convergence rate you could
+    hope for with this class of functions $f$. [Arjevani2016]}.
+    \emph{Hint} Define $F(x) = x - \alpha\nabla f(x)$. Prove that the eigenvalues $\gamma_i(x)$
+    of the Jacobian $\nabla F(x)$ are always bounded above by $q$: $|\gamma_i(x)|\leq q$. Apply
+    the Banach Fixed Point Theorem from analysis.
+\end{problem}
+
+\begin{solution}
+    \vfill
+\end{solution}
+
+
+\end{document}
